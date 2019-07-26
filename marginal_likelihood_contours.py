@@ -8,12 +8,10 @@ Created on Mon Jul 15 10:39:26 2019
 Single variate student-T version sampling from numpy student T
 Must take products instead of using vector dot products
 """
-import pymc3 as pm
 import numpy as np
 import matplotlib.pyplot as plt
 from gyroid import *
 from scipy.special import gamma
-import pandas as pd
 
 def mlikelihood(y, u, alpha, beta):
     """Inputs:  y, the data
@@ -44,6 +42,16 @@ def mlikelihood(y, u, alpha, beta):
 
 
 def Max_ab(P, y, u, alpha_values, beta_values, resoln):
+    """Inputs:  P the marginal likelihood array 
+                y, the data
+                u, the mean
+                alpha_values, linspace of alpha values the likelihood is calculated over
+                beta_values, linspace of beta values the likelihood is calculated over
+    
+        Outputs:
+    Returns the maximum element in P array (the maximum log likelihood), and corresponding
+    alpha and beta that produce the value of the maximum log likelihood. Produces a scatter plot
+    of log-likelihood versus alpha values and beta values respectively"""
     maxP = np.max(P)
     ind = np.unravel_index(np.argmax(P), P.shape)
     assert  P[ind] == maxP, "Index of P did not give max P"
@@ -53,28 +61,39 @@ def Max_ab(P, y, u, alpha_values, beta_values, resoln):
     
     #Scatter plot
     
-    print(len(P[:, ind[1]]), len(beta_values))
+    a = alpha_values[ind[1]]
+    b = beta_values[ind[0]]
+    
     #print(beta_values)
     plt.scatter(beta_values, P[:, ind[1]])
-    plt.xlabel('beta')
-    plt.ylabel('Marginal likelihood for a given beta')
+    plt.xlabel(r'$\beta$')
+    plt.ylabel('Log Marginal Likelihood')
     plt.grid()
-    plt.title('Marginal likelihood')
+    plt.title(r'Marginal likelihood along line $\alpha$ = %f' %a)
     plt.show()
     
     plt.scatter(alpha_values, P[ind[0]])
-    plt.xlabel('alpha')
-    plt.ylabel('Marginal likelihood for a given beta')
+    plt.xlabel(r'$\alpha$')
+    plt.ylabel('Log Marginal Likelihood')
     plt.grid()
-    plt.title('Marginal likelihood')
+    plt.title(r'Marginal likelihood along line $\beta$ = %f' %b)
     plt.show()
     
     
     return('alpha =', alpha_values[ind[1]], 'beta =', beta_values[ind[0]])
     
 def main(y, u, alpha_max, beta_max, resoln):
+    """Inputs:  y, the data vector
+                u, the mean vector
+                alpha_max, max alpha value to be searched over
+                beta_max, max beta value to be searched over
+                resoln, the num of the numpy linspace
     
-    
+        Outputs:
+    For a random variable y, and a known mean, returns a contour plot of the likelihood of the parameters alpha and beta
+    which define the distribution of the unknown variance. The values of alpha and beta which give the maximum likelihood
+    of the data given the mean vector, alpha, beta are found. These can be used to define an inverse-gamma distribution
+    which describes the random variable sigma."""
     alpha_values = (np.linspace(1e-2, alpha_max, resoln))
     beta_values = (np.linspace(1e-2, beta_max, resoln))
 
@@ -82,6 +101,14 @@ def main(y, u, alpha_max, beta_max, resoln):
     ALPHA_VALUES, BETA_VALUES = np.meshgrid(alpha_values, beta_values)
     P = mlikelihood(y, u, ALPHA_VALUES, BETA_VALUES)
     print(Max_ab(P, y, u, alpha_values, beta_values, resoln))
+    
+    
+    #marginal likelihood
+    A = np.ones([resoln, resoln])
+    E = np.e * A
+    H = np.power(E, P)
+    likelihood = np.sum(H)/np.size(H)
+    print('likelihood =', likelihood)
     
     #print(Min_ab(P, dof_values, var_values, data, resoln))
 
@@ -104,7 +131,7 @@ def main(y, u, alpha_max, beta_max, resoln):
     plt.xlabel('alpha')
     plt.ylabel('beta')
     plt.grid()
-    plt.title('Marginal likelihood')
+    plt.title('Log Marginal likelihood')
     plt.show()
     
     
@@ -112,20 +139,18 @@ def main(y, u, alpha_max, beta_max, resoln):
     breaks = np.linspace(minP, maxP, 1000)
     tick = np.linspace(minP, maxP, 11)
     
-    PLT2 = plt.contourf(np.log(alpha_values),np.log(beta_values), P, breaks, cmap='seismic')
+    PLT2 = plt.contourf((alpha_values),(beta_values), P, breaks)
     plt.colorbar(ticks= tick, orientation='vertical')
     
     plt.xlabel('alpha')
     plt.ylabel('beta')
     plt.grid()
-    plt.title('Marginal likelihood')
+    plt.title('Log Marginal likelihood')
     plt.show()
     
     return(None)
 
-
-
-
+# Test code
 # Get data
 y_200 = y(200)
 y_250 = y(250)
@@ -154,5 +179,3 @@ main(y_300, FEM_300, 100, 60, 1000)
 print('_____________________________________________________FEM 300 ABOVE')
 main(y_300, I_300, 100, 60, 1000)
 print('_____________________________________________________I 300 ABOVE')
-
-

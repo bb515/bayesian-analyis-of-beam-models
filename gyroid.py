@@ -9,7 +9,27 @@ Models class for creating the models, getting deflections
 """
 import numpy as np
 
-def model(model_number, weight_in_newtons):
+def x():
+    #X values of the data
+    x_values = [28.9269,
+                44.1511,
+                59.3753,
+                74.5995,
+                89.8237,
+                105.0479,
+                120.2721,
+                135.4963,
+                150.7205,
+                165.9447,
+                181.1689,
+                196.3931]
+    return(x_values)
+
+def model(model_number, weight_in_newtons):#
+    """Inputs: 
+    
+        Outputs:
+    """
     # define parameters
 
     # Boundary conditions and shared geometry of the models
@@ -54,8 +74,11 @@ def model(model_number, weight_in_newtons):
               }
     
     def deflection(model_number, x, load):
-        """given the model and distance from left hand support,
-        will return a vertical deflection, upwards positive. Simple beam theory."""
+        """Inputs: 
+    
+        Outputs:
+            given the model and distance from left hand support,
+        will return a vertical deflection, upwards positive, using Euler-Bernolli beam theory."""
     
         I = models[model_number]['SECOND_MOMENT']
         E = models[model_number]['YOUNGS_MODULUS']
@@ -98,6 +121,10 @@ def model(model_number, weight_in_newtons):
     
 
 def u(weight_in_newtons):
+    """Inputs: 
+    
+        Outputs:
+            """
     FEM = {200: {'data': [-0.622404969,
                           -0.91947751,
                           -1.179565705,
@@ -140,6 +167,10 @@ def u(weight_in_newtons):
 
 
 def y(weight_in_newtons):
+    """Inputs: 
+    
+        Outputs:
+            """
     data = {200: {'data' : [-0.623,
                             -0.6505,
                             -1.0025,
@@ -179,8 +210,3 @@ def y(weight_in_newtons):
         
         
     return(data[weight_in_newtons]['data'])
-    
-print(model(5, 200))
-print(model(5, 250))
-print(model(5, 300))
-        
